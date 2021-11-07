@@ -1,32 +1,20 @@
-import mediapipe as mp
 import cv2
-mp_drawing = mp.solutions.drawing_utils
-mp_holistic = mp.solutions.holistic
+#import dlib
+img = cv2.imread('image.png')
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # convert to grayscale detector = dlib.get_frontal_face_detector()
+rects = detector(gray, 1) # rects contains all the faces detected
 
 
-
-cap = cv2.VideoCapture(0)
-# Initiate holistic model
-with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
-    
-    while cap.isOpened():
-        ret, frame = cap.read()
-        image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+def shape_to_np(shape, dtype="int"):
+    coords = np.zeros((68, 2), dtype=dtype)
+    for i in range(0, 68):
+        coords[i] = (shape.part(i).x, shape.part(i).y)
+    return coords
+predictor = dlib.shape_predictor('shape_68.dat')
+for (i, rect) in enumerate(rects):
+    shape = predictor(gray, rect)
+    shape = shape_to_np(shape)
+    for (x, y) in shape:
+        cv2.circle(img, (x, y), 2, (0, 0, 255), -1)
         
-        results = holistic.process(image)
         
-        # Recolor image back to BGR for rendering
-        
-        # 1. Draw face landmarks
-        mp_drawing.draw_landmarks(image, results.face_landmarks, mp_holistic.face_connections, 
-                                 mp_drawing.DrawingSpec(color=(80,110,10), thickness=1, circle_radius=1),
-                                 mp_drawing.DrawingSpec(color=(80,256,121), thickness=1, circle_radius=1)
-                                 )
-                        
-        cv2.imshow('Raw Webcam Feed', image)
-
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            break
-
-cap.release()
-cv2.destroyAllWindows()
