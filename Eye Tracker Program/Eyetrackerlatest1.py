@@ -218,8 +218,8 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
             right_coords = [mesh_coords[p] for p in RIGHT_EYE]
             left_coords = [mesh_coords[p] for p in LEFT_EYE]
             crop_right, crop_left = eyesExtractor(frame, right_coords, left_coords)
-            cv.imshow('right', crop_right)
-            cv.imshow('left', crop_left)
+            #cv.imshow('right', crop_right)
+            #cv.imshow('left', crop_left)
             eye_position, color = positionEstimator(crop_right)
             utils.colorBackgroundText(frame, f'R: {eye_position}', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8)
             eye_position_left, color = positionEstimator(crop_left)
