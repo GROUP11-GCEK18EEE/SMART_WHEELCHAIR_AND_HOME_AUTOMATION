@@ -3,6 +3,8 @@ import mediapipe as mp
 import time
 import math
 import numpy as np
+import gpiozero as GPIO
+from gpiozero import Robot
 
 # variables 
 frame_counter =0
@@ -25,6 +27,7 @@ PURPLE = (128,0,128)
 ORANGE = (0,165,255)
 PINK = (147,20,255)
 points_list =[(200, 300), (150, 150), (400, 200)]
+robot = Robot((4, 14), (17, 27))
 def drawColor(img, colors):
     x, y = 0,10
     w, h = 20, 30
@@ -95,7 +98,7 @@ RIGHT_EYEBROW=[ 70, 63, 105, 66, 107, 55, 65, 52, 53, 46 ]
 map_face_mesh = mp.solutions.face_mesh
 
 # camera object 
-camera = cv.VideoCapture(1)
+camera = cv.VideoCapture(0)
 
 # landmark detection function 
 def landmarksDetection(img, results, draw=False):
@@ -151,7 +154,7 @@ def blinkRatio(img, landmarks, right_indices, left_indices):
     leRatio = lhDistance/lvDistance
 
     ratio = (reRatio+leRatio)/2
-    return ratio 
+    return ratio
 
     # Eyes Extrctor function,
 def eyesExtractor(img, right_eye_coords, left_eye_coords):
@@ -227,6 +230,19 @@ def pixelCounter(first_piece, second_piece, third_piece,fourth_piece,fifth_piece
         color = [WHITE, YELLOW]
     return pos_eye, color
 
+#Wheelchair Movement
+def wheelchair(forward, stop, left, right):
+    
+    if(forward==1):
+        robot.forward()
+    elif(left):
+        robot.left()
+    elif(right):
+        robot.right()
+    else:
+        robot.stop()
+
+    return 
 
 # Eyes Postion Estimator 
 def positionEstimator(cropped_eye):
@@ -313,3 +329,5 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
             break
     cv.destroyAllWindows()
     camera.release()
+
+    
