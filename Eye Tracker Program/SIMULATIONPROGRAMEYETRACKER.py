@@ -3,15 +3,18 @@ import mediapipe as mp
 import time
 import math
 import numpy as np
-import gpiozero as GPIO
-from gpiozero import robot
+import serial
 
 # variables 
 frame_counter =0
 CLOSED_TIME=0
 CEF_COUNTER =0
 TOTAL_BLINKS =0
-
+FORWARDCHAIR = 0
+STOPCHAIR = 0
+RIGHTCHAIR = 0
+LEFTCHAIR = 0
+s = serial.Serial('COM1',9600)
 # colors 
 # values =(blue, green, red) opencv accepts BGR values not RGB
 BLACK = (0,0,0)
@@ -27,7 +30,7 @@ PURPLE = (128,0,128)
 ORANGE = (0,165,255)
 PINK = (147,20,255)
 points_list =[(200, 300), (150, 150), (400, 200)]
-robot = Robot((4, 14), (17, 27))
+
 def drawColor(img, colors):
     x, y = 0,10
     w, h = 20, 30
@@ -98,7 +101,7 @@ RIGHT_EYEBROW=[ 70, 63, 105, 66, 107, 55, 65, 52, 53, 46 ]
 map_face_mesh = mp.solutions.face_mesh
 
 # camera object 
-camera = cv.VideoCapture(0)
+camera = cv.VideoCapture(1)
 
 # landmark detection function 
 def landmarksDetection(img, results, draw=False):
@@ -213,36 +216,35 @@ def pixelCounter(first_piece, second_piece, third_piece,fourth_piece,fifth_piece
     if max_index==0:
         pos_eye="RIGHT"
         color=[BLACK, GREEN]
+        
+
+        #s.write(b'3')
     elif max_index==1:
         pos_eye = 'CENTER'
         color = [YELLOW, PINK]
+        
+        #s.write(b'0')
     elif max_index ==2:
         pos_eye = 'LEFT'
         color = [GRAY, YELLOW]
+        
+        #s.write(b'2')
     elif max_index ==3:
         pos_eye = 'UP'
         color = [GRAY, YELLOW]
+        
+        #s.write(b'1')
     elif max_index ==4:
         pos_eye = 'DOWN'
         color = [BLACK, YELLOW]
+        #s.write(b'4')
     else:
         pos_eye="CLOSED"
         color = [WHITE, YELLOW]
+    
     return pos_eye, color
 
-#Wheelchair Movement
-def wheelchair(forward, stop, left, right):
-    
-    if(forward==1):
-        robot.forward()
-    elif(left):
-        robot.left()
-    elif(right):
-        robot.right()
-    else:
-        robot.stop()
 
-    return 
 
 # Eyes Postion Estimator 
 def positionEstimator(cropped_eye):
@@ -294,18 +296,19 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
             if ratio >4.5:
                 CEF_COUNTER +=1
                 CLOSED_TIME +=1
+                TOTAL_BLINKS +=1
                 colorBackgroundText(frame,  f'Blink', FONTS, 1.7, (int(frame_height/2), 100), 2, YELLOW, pad_x=6, pad_y=6, )
 
             else:
                 if CEF_COUNTER>CLOSED_EYES_FRAME:
-                    TOTAL_BLINKS +=1
+                    
                     CEF_COUNTER =0
             colorBackgroundText(frame,  f'Total Blinks: {TOTAL_BLINKS} Total CEF={CEF_COUNTER} Total CLOSED TIME={CLOSED_TIME}', FONTS, 0.7, (30,150),2)
 
             if TOTAL_BLINKS>2:
                 TOTAL_BLINKS=0
                 CLOSED_TIME=0
-            
+                
             cv.polylines(frame,  [np.array([mesh_coords[p] for p in LEFT_EYE ], dtype=np.int32)], True, GREEN, 1, cv.LINE_AA)
 
             # Blink Detector Counter Completed
@@ -313,10 +316,21 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
             left_coords = [mesh_coords[p] for p in LEFT_EYE]
             crop_right, crop_left = eyesExtractor(frame, right_coords, left_coords)
             eye_position_right, color = positionEstimator(crop_right)
-            colorBackgroundText(frame, f'R: {eye_position_right}', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8)
+            
             eye_position_left, color = positionEstimator(crop_left)
-            colorBackgroundText(frame, f'L: {eye_position_left}', FONTS, 1.0, (40, 320), 2, color[0], color[1], 8, 8)
-             
+            colorBackgroundText(frame, f'R: {eye_position_right}', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8)
+            if(TOTAL_BLINKS==2 and CLOSED_TIME<30):
+                if(eye_position_right=="UP" ):
+                    s.write(b'1')
+                elif(eye_position_right=="LEFT" ):
+                    s.write(b'2')
+                elif(eye_position_right=="RIGHT"):
+                    s.write(b'3')    
+                else:
+                    s.write(b'0')
+            else:
+                s.write(b'0')   
+            time.sleep(0.5) 
              
         # calculating  frame per seconds FPS
         end_time = time.time()-start_time
