@@ -101,7 +101,7 @@ RIGHT_EYEBROW=[ 70, 63, 105, 66, 107, 55, 65, 52, 53, 46 ]
 map_face_mesh = mp.solutions.face_mesh
 
 # camera object 
-camera = cv.VideoCapture(1)
+camera = cv.VideoCapture(0)
 
 # landmark detection function 
 def landmarksDetection(img, results, draw=False):
@@ -260,13 +260,14 @@ def positionEstimator(cropped_eye):
 
     # create fixd part for eye with 
     piece = int(w/3) 
-    place = int(h/2)
+    place = int(h/3)
+    down = int(h/2)
     # slicing the eyes into three parts 
     right_piece = threshed_eye[0:h, 0:piece]
     center_piece = threshed_eye[0:h, piece: piece+piece]
     left_piece = threshed_eye[0:h, piece +piece:w]
-    up_piece=threshed_eye[0:place, 0:w]
-    down_piece=threshed_eye[place:place+place, 0:w]
+    up_piece=threshed_eye[0:down, 0:w]
+    down_piece=threshed_eye[down:h, 0:w]
     
     # calling pixel counter function
     eye_position, color = pixelCounter(right_piece, center_piece, left_piece, up_piece, down_piece)
@@ -319,8 +320,8 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
             
             eye_position_left, color = positionEstimator(crop_left)
             colorBackgroundText(frame, f'R: {eye_position_right}', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8)
-            if(TOTAL_BLINKS==2 and CLOSED_TIME<30):
-                if(eye_position_right=="UP" ):
+            if(TOTAL_BLINKS==2):
+                if(eye_position_right=="DOWN" ):
                     s.write(b'1')
                 elif(eye_position_right=="LEFT" ):
                     s.write(b'2')
@@ -330,7 +331,7 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
                     s.write(b'0')
             else:
                 s.write(b'0')   
-            time.sleep(0.5) 
+            time.sleep(1) 
              
         # calculating  frame per seconds FPS
         end_time = time.time()-start_time
