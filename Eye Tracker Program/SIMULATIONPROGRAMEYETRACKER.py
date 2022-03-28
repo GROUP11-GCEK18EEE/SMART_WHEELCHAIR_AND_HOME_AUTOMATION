@@ -4,7 +4,7 @@ import time
 import math
 import numpy as np
 import serial
-
+from gpiozero import Robot
 # variables 
 frame_counter =0
 CLOSED_TIME=0
@@ -14,7 +14,7 @@ FORWARDCHAIR = 0
 STOPCHAIR = 0
 RIGHTCHAIR = 0
 LEFTCHAIR = 0
-s = serial.Serial('COM1',9600)
+#s = serial.Serial('COM1',9600)
 # colors 
 # values =(blue, green, red) opencv accepts BGR values not RGB
 BLACK = (0,0,0)
@@ -30,7 +30,7 @@ PURPLE = (128,0,128)
 ORANGE = (0,165,255)
 PINK = (147,20,255)
 points_list =[(200, 300), (150, 150), (400, 200)]
-
+#robot = Robot((4, 14), (17, 27))
 def drawColor(img, colors):
     x, y = 0,10
     w, h = 20, 30
@@ -322,16 +322,21 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
             colorBackgroundText(frame, f'R: {eye_position_right}', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8)
             if(TOTAL_BLINKS==2):
                 if(eye_position_right=="DOWN" ):
-                    s.write(b'1')
+                   # s.write(b'1')
+                   print("Forward")
                 elif(eye_position_right=="LEFT" ):
-                    s.write(b'2')
+                   # s.write(b'2')
+                   print("Left")
                 elif(eye_position_right=="RIGHT"):
-                    s.write(b'3')    
+                  #  s.write(b'3')   
+                  print("Right") 
                 else:
-                    s.write(b'0')
+                   # s.write(b'0')
+                   print("Stop")
             else:
-                s.write(b'0')   
-            time.sleep(1) 
+                #s.write(b'0') 
+                print("Stop")  
+            time.sleep(0.5) 
              
         # calculating  frame per seconds FPS
         end_time = time.time()-start_time
@@ -345,4 +350,3 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
     cv.destroyAllWindows()
     camera.release()
 
-    
