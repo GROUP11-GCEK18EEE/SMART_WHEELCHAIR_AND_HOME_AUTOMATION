@@ -4,7 +4,6 @@ import time
 import math
 import numpy as np
 import serial
-from gpiozero import Robot
 import RPi.GPIO as GPIO
 # variables 
 frame_counter =0
@@ -15,11 +14,11 @@ FORWARDCHAIR = 0
 STOPCHAIR = 0
 RIGHTCHAIR = 0
 LEFTCHAIR = 0
-pwm = 12				# PWM pin connected to LED
+
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)		#set pin numbering system
 GPIO.setup(pwm,GPIO.OUT)
-pi_pwm = GPIO.PWM(pwm,1000)		#create PWM instance with frequency
+pi_pwm = GPIO.PWM(pwm,100)		#create PWM instance with frequency
 pi_pwm.start(0)	
 pi_pwm.ChangeDutyCycle(100)
 #s = serial.Serial('COM1',9600)

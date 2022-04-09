@@ -6,6 +6,9 @@ import time
 import math
 import numpy as np
 import requests
+import RPi.GPIO as GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 
 # variables 
 frame_counter =0
@@ -39,6 +42,14 @@ input1on = "http://192.168.165.124/4/on"
 input1off = "http://192.168.165.124/4/off"
 input2on = "http://192.168.165.124/14/on"
 input2off = "http://192.168.165.124/14/off"
+#GPIO
+pin_1=20
+pin_2=21
+GPIO.setup(pin_1,GPIO.OUT)
+GPIO.setup(pin_2,GPIO.OUT)
+
+
+
 def drawColor(img, colors):
     x, y = 0,10
     w, h = 20, 30
@@ -335,17 +346,26 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
             if(TOTAL_BLINKS==4):
                 if(eye_position_right=="DOWN" ):
                     print("forward")
+                    GPIO.output(pin_1,GPIO.HIGH)
+                    GPIO.output(pin_2,GPIO.HIGH)
                     #s.write(b'1')
                 elif(eye_position_right=="LEFT" ):
                     print("left")
+                    GPIO.output(pin_1,GPIO.HIGH)
+                    GPIO.output(pin_2,GPIO.LOW)
               #      s.write(b'2')
                 elif(eye_position_right=="RIGHT"):
               #      s.write(b'3')    
                     print("right")
+                    GPIO.output(pin_1,GPIO.LOW)
+                    GPIO.output(pin_2,GPIO.HIGH)
                 else:
              #       s.write(b'0')
+                    GPIO.output(pin_1,GPIO.LOW)
+                    GPIO.output(pin_2,GPIO.LOW)
                     print("stop")
-
+            if(TOTAL_BLINKS!=4):
+                GPIO.cleanup()
             if(TOTAL_BLINKS==2):
                 if(eye_position_right=="RIGHT"):
                     if(switch1):
