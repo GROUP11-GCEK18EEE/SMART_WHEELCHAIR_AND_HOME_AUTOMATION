@@ -227,30 +227,28 @@ def pixelCounter(first_piece, second_piece, third_piece,fourth_piece,fifth_piece
         
 
         #s.write(b'3')
-    
+    elif max_index==1:
+        pos_eye = 'CENTER'
+        color = [YELLOW, PINK]
+        
+        #s.write(b'0')
     elif max_index ==2:
         pos_eye = 'LEFT'
         color = [GRAY, YELLOW]
         
         #s.write(b'2')
-    #elif max_index==1:
-    else:
-        pos_eye = 'CENTER'
-        color = [YELLOW, PINK]
-        
-        #s.write(b'0')
-    #elif max_index ==3:
-    #    pos_eye = 'UP'
-    #    color = [GRAY, YELLOW]
+    elif max_index ==3:
+        pos_eye = 'UP'
+        color = [GRAY, YELLOW]
         
         #s.write(b'1')
-    #elif max_index ==4:
-    #    pos_eye = 'DOWN'
-    #    color = [BLACK, YELLOW]
+    elif max_index ==4:
+        pos_eye = 'DOWN'
+        color = [BLACK, YELLOW]
         #s.write(b'4')
-    #else:
-    #    pos_eye="CLOSED"
-     #   color = [WHITE, YELLOW]
+    else:
+        pos_eye="CLOSED"
+        color = [WHITE, YELLOW]
     
     return pos_eye, color
 
@@ -316,7 +314,7 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
                     CEF_COUNTER =0
             colorBackgroundText(frame,  f'Total Blinks: {TOTAL_BLINKS} Total CEF={CEF_COUNTER} Total CLOSED TIME={CLOSED_TIME}', FONTS, 0.7, (30,150),2)
 
-            if TOTAL_BLINKS>4:
+            if TOTAL_BLINKS>2:
                 TOTAL_BLINKS=0
                 CLOSED_TIME=0
                 
@@ -330,9 +328,8 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
             
             eye_position_left, color = positionEstimator(crop_left)
             colorBackgroundText(frame, f'R: {eye_position_right}', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8)
-            
            
-            if(TOTAL_BLINKS==4):
+            if(TOTAL_BLINKS==6 & TOTAL_BLINKS==7):
                 if(eye_position_right=="DOWN" ):
                     print("forward")
                     #s.write(b'1')
@@ -348,31 +345,26 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
 
             if(TOTAL_BLINKS==2):
                 if(eye_position_right=="RIGHT"):
-                    if(switch1):
-                        requests.get(url = input1off)
-                        print("switch 1 off")
-                        switch1=False
-                    if(switch1 == False):
-                        requests.get(url = input1on)
-                        print("switch 1 on")
-                        switch1=True
+                    requests.get(url = input1off)
+                    print("switch 1 off")
+                if(eye_position_right=="LEFT"):    
+                    requests.get(url = input1on)
+                    print("switch 1 on")
+                 
+            if(TOTAL_BLINKS==4):
+                if(eye_position_right=="RIGHT"):
+                    requests.get(url = input2off)
+                    print("switch 2 off")
 
-                if(eye_position_right=="LEFT"):
-                    if(switch2):
-                        requests.get(url = input2off)
-                        print("switch 2 off")
-                        switch2=False
-                    if(switch2 == False):
-                        requests.get(url = input2on)
-                        print("switch 2 on")
-                        switch2=True
+                if(eye_position_right=="LEFT"): 
+                    requests.get(url = input2on)
+                    print("switch 2 on")
 
-              
 
 
            # else:
               #  s.write(b'0')  
-            time.sleep(0.5) 
+            time.sleep(0.25) 
              
         # calculating  frame per seconds FPS
         end_time = time.time()-start_time
