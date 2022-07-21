@@ -39,6 +39,10 @@ input1on = "http://192.168.165.124/4/on"
 input1off = "http://192.168.165.124/4/off"
 input2on = "http://192.168.165.124/14/on"
 input2off = "http://192.168.165.124/14/off"
+#GPIO
+pin_1=20
+pin_2=21
+
 def drawColor(img, colors):
     x, y = 0,10
     w, h = 20, 30
@@ -109,7 +113,7 @@ RIGHT_EYEBROW=[ 70, 63, 105, 66, 107, 55, 65, 52, 53, 46 ]
 map_face_mesh = mp.solutions.face_mesh
 
 # camera object 
-camera = cv.VideoCapture(0)
+camera = cv.VideoCapture(1)
 
 # landmark detection function 
 def landmarksDetection(img, results, draw=False):
@@ -329,7 +333,7 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
             eye_position_left, color = positionEstimator(crop_left)
             colorBackgroundText(frame, f'R: {eye_position_right}', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8)
            
-            if(TOTAL_BLINKS==6 & TOTAL_BLINKS==7):
+            if(TOTAL_BLINKS==6):
                 if(eye_position_right=="DOWN" ):
                     print("forward")
                     #s.write(b'1')
@@ -364,7 +368,7 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
 
            # else:
               #  s.write(b'0')  
-            time.sleep(0.25) 
+            time.sleep(0.15) 
              
         # calculating  frame per seconds FPS
         end_time = time.time()-start_time

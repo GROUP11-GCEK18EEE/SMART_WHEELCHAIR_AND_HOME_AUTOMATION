@@ -6,9 +6,10 @@ import time
 import math
 import numpy as np
 import requests
-import RPi.GPIO as GPIO
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
+#import RPi.GPIO as GPIO
+import pyttsx3
+#GPIO.setmode(GPIO.BCM)
+#GPIO.setwarnings(False)
 
 # variables 
 frame_counter =0
@@ -37,6 +38,9 @@ PINK = (147,20,255)
 points_list =[(200, 300), (150, 150), (400, 200)]
 switch1 = False
 switch2 = False
+switch_one_voice_count = 0
+switch_two_voice_count = 0
+wheelchair_voice_count = 0
  # api-endpoint
 input1on = "http://192.168.165.124/4/on"
 input1off = "http://192.168.165.124/4/off"
@@ -45,9 +49,9 @@ input2off = "http://192.168.165.124/14/off"
 #GPIO
 pin_1=20
 pin_2=21
-GPIO.setup(pin_1,GPIO.OUT)
-GPIO.setup(pin_2,GPIO.OUT)
-
+#GPIO.setup(pin_1,GPIO.OUT)
+#GPIO.setup(pin_2,GPIO.OUT)
+engine = pyttsx3.init()
 
 
 def drawColor(img, colors):
@@ -120,7 +124,7 @@ RIGHT_EYEBROW=[ 70, 63, 105, 66, 107, 55, 65, 52, 53, 46 ]
 map_face_mesh = mp.solutions.face_mesh
 
 # camera object 
-camera = cv.VideoCapture(0)
+camera = cv.VideoCapture(1)
 
 # landmark detection function 
 def landmarksDetection(img, results, draw=False):
@@ -325,7 +329,7 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
                     CEF_COUNTER =0
             colorBackgroundText(frame,  f'Total Blinks: {TOTAL_BLINKS} Total CEF={CEF_COUNTER} Total CLOSED TIME={CLOSED_TIME}', FONTS, 0.7, (30,150),2)
 
-            if TOTAL_BLINKS>2:
+            if TOTAL_BLINKS>9:
                 TOTAL_BLINKS=0
                 CLOSED_TIME=0
                 
@@ -339,8 +343,13 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
             
             eye_position_left, color = positionEstimator(crop_left)
             colorBackgroundText(frame, f'R: {eye_position_right}', FONTS, 1.0, (40, 220), 2, color[0], color[1], 8, 8)
-           
-            if(TOTAL_BLINKS==4):
+            if(TOTAL_BLINKS==6):
+                if(wheelchair_voice_count == 0):
+                    engine.say('WheelChair selected')
+                    engine.runAndWait()
+                    wheelchair_voice_count=1
+                    switch_one_voice_count=0
+                    switch_two_voice_count=0
                 if(eye_position_right=="DOWN" ):
                     print("forward")
                     GPIO.output(pin_1,GPIO.HIGH)
@@ -362,7 +371,13 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
                     GPIO.output(pin_2,GPIO.LOW)
                     print("stop")
                 
-            if(TOTAL_BLINKS==2):
+            if(TOTAL_BLINKS==4):
+                if(switch_two_voice_count == 0):
+                    engine.say('Switch Two Selected')
+                    engine.runAndWait()
+                    switch_two_voice_count=1
+                    switch_one_voice_count=0
+                    wheelchair_voice_count=0
                 if(eye_position_right=="RIGHT"):
                     requests.get(url = input1off)
                     print("switch 1 off")
@@ -370,7 +385,14 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
                     requests.get(url = input1on)
                     print("switch 1 on")
                  
-            if(TOTAL_BLINKS==4):
+            if(TOTAL_BLINKS==2):
+                if(switch_one_voice_count == 0):
+                    engine.say('Switch One Selected')
+                    engine.runAndWait()
+                    switch_one_voice_count=1
+                    switch_two_voice_count=0
+                    wheelchair_voice_count=0
+
                 if(eye_position_right=="RIGHT"):
                     requests.get(url = input2off)
                     print("switch 2 off")
@@ -378,13 +400,8 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
                 if(eye_position_right=="LEFT"): 
                     requests.get(url = input2on)
                     print("switch 2 on")
-
-              
-
-
-           # else:
-              #  s.write(b'0')  
-            time.sleep(0.5) 
+            
+            #time.sleep(0.15) 
              
         # calculating  frame per seconds FPS
         end_time = time.time()-start_time
@@ -398,5 +415,3 @@ with map_face_mesh.FaceMesh(min_detection_confidence =0.5, min_tracking_confiden
             break
     cv.destroyAllWindows()
     camera.release()
-
-    
